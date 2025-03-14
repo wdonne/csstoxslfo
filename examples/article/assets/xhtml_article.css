@@ -1,0 +1,290 @@
+@page
+{
+  column-count: 2;
+  margin-bottom: 15mm;
+  margin-left: 15mm;
+  margin-right: 15mm;
+  margin-top: 25mm;
+  size: 210mm 297mm;
+}
+
+@media print
+{
+  a
+  {
+    color: black;
+  }
+
+  acronym
+  {
+    font-family: serif-small-caps;
+    text-transform: lowercase;
+  }   
+
+  body
+  { 
+    font-family: serif;
+    font-size: 10pt;
+    hyphenate: true;
+    line-height: 12pt;
+  } 
+
+  dd
+  {
+    text-align: justify;
+  } 
+
+  dl > dt
+  {
+    font-style: italic;
+  }
+
+  blockquote, dl, ol, pre, table, ul
+  {
+    margin-bottom: 12pt;
+    margin-top: 12pt;
+  }
+
+  table table
+  {
+    margin-bottom: 0pt;
+    margin-top: 0pt;
+  }
+
+  h1, h2, h3, h4, h5, h6
+  {
+    font-family: serif;
+    font-weight: normal;
+    line-height: 12pt;
+    margin-bottom: 12pt;
+    margin-top: 12pt;
+  }
+
+  h1
+  {
+    font-size: 14pt;
+  }
+
+  h1.double
+  {
+    margin-bottom: 7.2pt;
+    margin-top: 7.2pt;
+  }
+
+  div.head + h1
+  {
+    margin-top: 0pt;
+  }
+
+  h1, h2
+  {
+    font-family: serif-small-caps;
+    text-transform: lowercase;
+  }
+
+  h2
+  {
+    font-size: 12pt;
+  }
+
+  h3, h4, h5, h6
+  {
+    font-family: serif-title;
+    font-size: 10pt;
+  }
+
+  h3
+  {
+    font-style: italic;
+  }
+
+  li, p
+  {
+    margin-bottom: 0pt;
+    margin-top: 0pt;
+  }
+
+  p + p
+  {
+    text-indent: 1.5em;
+  }
+
+  pre
+  {
+    page-break-inside: auto;
+  }
+
+  span.footnote-body
+  { 
+    display: footnote-body;
+    font-size: 0.83em;
+    line-height: 10pt;
+  }
+  
+  span.footnote-body:before
+  { 
+    content: counter(footnote);
+    padding-right: 1em;
+  }
+  
+  span.footnote-reference
+  {
+    display: footnote-reference;
+  }
+  
+  span.footnote-reference:before
+  {
+    counter-increment: footnote;
+    content: counter(footnote);
+    font-size: 0.83em;
+    vertical-align: super;
+  } 
+
+  sub
+  {
+    font-size: 0.72em;
+    vertical-align: -25%;
+  }
+
+  sup
+  {
+    font-size: 0.72em;
+    vertical-align: 25%;
+  }
+
+  div.bottom
+  {
+    height: 2em;
+    padding-top: 1em;
+    region: bottom;
+    text-align: center;
+  }
+
+  div.bottom > span:before
+  {
+    content: counter(page);
+  }
+
+  div.head
+  {
+    column-span: all;
+    margin-bottom: 2em;
+  }
+
+  div.head *
+  {
+    margin-bottom: 1em;
+    margin-top: 1em;
+    text-align: center;
+    text-indent: 0pt;
+  }
+
+  div.head > h1
+  {
+    font-size: 1.8em;
+    margin-bottom: 1em;
+  }
+
+  div.head > div.abstract > h1
+  {
+    font-size: 1em;
+    margin-bottom: 0.5em;
+  }
+
+  div.head > div.abstract > p
+  {
+    font-style: italic;
+    margin-bottom: 0pt;
+    margin-left: 3em;
+    margin-right: 3em;
+    margin-top: 0pt;
+    text-align: justify;
+  }
+
+  body > h1
+  {
+    counter-increment: h1;
+    counter-reset: h2;
+  }
+
+  body > h2
+  {
+    counter-increment: h2;
+    counter-reset: h3;
+  }
+
+  body > h3
+  {
+    counter-increment: h3;
+  }
+
+  body > h1:before, body > h2:before, body > h3:before
+  {
+    padding-right: 1em;
+  }
+
+
+  body > h1:before
+  {
+    content: counter(h1);
+  }
+
+  body > h2:before
+  {
+    content: counter(h1) "." counter(h2);
+  }
+
+  body > h3:before
+  {
+    content: counter(h1) "." counter(h2) "." counter(h3);
+  }
+
+  td
+  {
+    padding: 5pt;
+    vertical-align: top;
+  }
+
+  th
+  {
+    font-style: italic;
+    font-weight: normal;
+    padding: 5pt;
+    text-align: left;
+  }
+
+  div.img
+  {
+    margin-bottom: 12pt;
+    margin-top: 12pt;
+    text-align: center;
+  }
+
+  div.img > div.caption
+  {
+    font-style: italic;
+    margin-top: 6pt;
+  }
+
+  img
+  {
+    content-height: scale-to-fit;
+    content-width: scale-to-fit;
+  }
+
+  div.references
+  {
+    margin-top: 12pt;
+    margin-left: 1.5em;
+    text-align: justify;
+  }
+
+  div.references > div:before
+  {
+    content: "[" counter(reference) "]";
+    counter-increment: reference;
+    display: marker;
+    text-align: left;
+    width: 1.5em;
+  }
+}

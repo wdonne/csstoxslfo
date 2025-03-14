@@ -1,0 +1,82 @@
+@namespace url(http://www.w3.org/1999/xhtml);
+
+a[href]
+{
+  link: attr(href);
+}
+
+a[name]
+{
+  anchor: name;
+}
+
+body { region: body }
+
+body:lang(da)
+{
+  quotes: "\00BB" "\00AB";
+}
+
+body:lang(de-DE), body:lang(de-AT)
+{
+  quotes: "\201E" "\201C" "\201A" "\2018"
+}
+
+body, body:lang(en), body:lang(es)
+{
+  quotes: "\201C" "\201D" "\2018" "\2019";
+}
+
+body:lang(fr)
+{
+  quotes: "\00AB " " \00BB" "\2039 " " \203A";
+}
+
+body:lang(it)
+{
+  quotes: "\00AB " " \00BB";
+}
+
+body:lang(nl)
+{
+  quotes: "\201D" "\201D" "\2019" "\2019";
+}
+
+body:lang(no), bodylang:(pt), body:lang(de-CH)
+{
+  quotes: "\00AB" "\00BB" "\2039" "\203A"
+}
+
+body:lang(sv)
+{
+  quotes: "\00BB" "\00BB";
+}
+
+form
+{
+  margin: 0;
+}
+
+img
+{
+  content-height: scale-to-fit;
+  content-width: scale-to-fit;
+  display: graphic;
+  scaling: uniform;
+  src: attr(src);
+}
+
+q:after
+{
+  content: close-quote;
+}
+
+q:before
+{
+  content: open-quote;
+}
+
+script
+{
+  display: none;
+}

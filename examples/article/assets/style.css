@@ -1,0 +1,19 @@
+div.img.fig1
+{
+  height: 168pt;
+}
+
+div.img.fig2
+{
+  height: 120pt;
+}
+
+div.img.fig3
+{
+  height: 96pt;
+}
+
+div.img > img
+{
+  width: 100%;
+}

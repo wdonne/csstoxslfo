@@ -1,0 +1,233 @@
+PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+       "xhtml1/xhtml1-strict.dtd"
+SYSTEM "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"
+       "xhtml1/xhtml1-strict.dtd"
+
+PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+       "xhtml1/xhtml1-transitional.dtd"
+SYSTEM "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
+       "xhtml1/xhtml1-transitional.dtd"
+
+PUBLIC "-//W3C//DTD XHTML 1.0 Frameset//EN"
+       "xhtml1/xhtml1-frameset.dtd"
+SYSTEM "http://www.w3.org/TR/xhtml1/DTD/xhtml1-frameset.dtd"
+       "xhtml1/xhtml1-frameset.dtd"
+
+PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+       "xhtml11/xhtml11.dtd"
+SYSTEM "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"
+       "xhtml11/xhtml11.dtd"
+
+PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+       "html4/loose.dtd"
+SYSTEM "http://www.w3.org/TR/html4/loose.dtd"
+       "html4/loose.dtd"
+
+PUBLIC "-//W3C//DTD HTML 4.01//EN"
+       "html4/strict.dtd"
+SYSTEM "http://www.w3.org/TR/html4/strict.dtd"
+       "html4/strict.dtd"
+
+PUBLIC "-//W3C//ENTITIES Latin 1 for XHTML//EN"
+       "xhtml1/xhtml-lat1.ent"
+SYSTEM "http://www.w3.org/TR/xhtml1/DTD/xhtml-lat1.ent"
+       "xhtml1/xhtml-lat1.ent"
+SYSTEM "http://www.w3.org/TR/xhtml-modularization/DTD/xhtml-lat1.ent"
+       "xhtml1/xhtml-lat1.ent"
+
+PUBLIC "-//W3C//ENTITIES Special for XHTML//EN"
+       "xhtml1/xhtml-special.ent"
+SYSTEM "http://www.w3.org/TR/xhtml1/DTD/xhtml-special.ent"
+       "xhtml1/xhtml-special.ent"
+SYSTEM "http://www.w3.org/TR/xhtml-modularization/DTD/xhtml-special.ent"
+       "xhtml1/xhtml-special.ent"
+
+PUBLIC "-//W3C//ENTITIES Symbols for XHTML//EN"
+       "xhtml1/xhtml-symbol.ent"
+SYSTEM "http://www.w3.org/TR/xhtml1/DTD/xhtml-symbol.ent"
+       "xhtml1/xhtml-symbol.ent"
+SYSTEM "http://www.w3.org/TR/xhtml-modularization/DTD/xhtml-symbol.ent"
+       "xhtml1/xhtml-symbol.ent"
+
+PUBLIC "-//W3C//DTD SVG 1.0//EN"
+       "svg10.dtd"
+SYSTEM "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd"
+       "svg10.dtd"
+
+PUBLIC "-//W3C//DTD SVG 1.1 Basic//EN"
+       "svg11/svg11-basic-flat.dtd"
+SYSTEM "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11-basic.dtd"
+       "svg11/svg11-basic-flat.dtd"
+
+PUBLIC "-//W3C//DTD SVG 1.1//EN"
+       "svg11/svg11-flat.dtd"
+SYSTEM "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"
+       "svg11/svg11-flat.dtd"
+
+PUBLIC "-//W3C//DTD SVG 1.1 Tiny//EN"
+       "svg11/svg11-tiny-flat.dtd"
+SYSTEM "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11-tiny.dtd"
+       "svg11/svg11-tiny-flat.dtd"
+
+PUBLIC "-//OASIS//DTD DITA 1.3 Base Map//EN"
+       "dita/base/dtd/basemap.dtd"
+PUBLIC "-//OASIS//DTD DITA Base Map//EN"
+       "dita/base/dtd/basemap.dtd"
+
+PUBLIC "-//OASIS//DTD DITA 1.3 Base Topic//EN"
+       "dita/base/dtd/basetopic.dtd"
+PUBLIC "-//OASIS//DTD DITA Base Topic//EN"
+       "dita/base/dtd/basetopic.dtd"
+
+PUBLIC "-//OASIS//DTD DITA 1.3 BookMap//EN"
+       "dita/bookmap/dtd/bookmap.dtd"
+PUBLIC "-//OASIS//DTD DITA BookMap//EN"
+       "dita/bookmap/dtd/bookmap.dtd"
+
+PUBLIC "-//OASIS//DTD DITA 1.3 DITAVAL//EN"
+       "dita/ditaval/dtd/ditaval.dtd"
+PUBLIC "-//OASIS//DTD DITA DITAVAL//EN"
+       "dita/ditaval/dtd/ditaval.dtd"
+
+PUBLIC "-//OASIS//DTD DITA 1.3 Learning Assessment//EN"
+       "dita/learning/dtd/learningAssessment.dtd"
+PUBLIC "-//OASIS//DTD DITA Learning Assessment//EN"
+       "dita/learning/dtd/learningAssessment.dtd"
+
+PUBLIC "-//OASIS//DTD DITA 1.3 Learning BookMap//EN"
+       "dita/learning/dtd/learningBookmap.dtd"
+PUBLIC "-//OASIS//DTD DITA Learning BookMap//EN"
+       "dita/learning/dtd/learningBookmap.dtd"
+
+PUBLIC "-//OASIS//DTD DITA 1.3 Learning Content//EN"
+       "dita/learning/dtd/learningContent.dtd"
+PUBLIC "-//OASIS//DTD DITA Learning Content//EN"
+       "dita/learning/dtd/learningContent.dtd"
+
+PUBLIC "-//OASIS//DTD DITA 1.3 Learning Group Map//EN"
+       "dita/learning/dtd/learningGroupMap.dtd"
+PUBLIC "-//OASIS//DTD DITA Learning Group Map//EN"
+       "dita/learning/dtd/learningGroupMap.dtd"
+
+PUBLIC "-//OASIS//DTD DITA 1.3 Learning Map//EN"
+       "dita/learning/dtd/learningMap.dtd"
+PUBLIC "-//OASIS//DTD DITA Learning Map//EN"
+       "dita/learning/dtd/learningMap.dtd"
+
+PUBLIC "-//OASIS//DTD DITA 1.3 Learning Object Map//EN"
+       "dita/learning/dtd/learningObjectMap.dtd"
+PUBLIC "-//OASIS//DTD DITA Learning Object Map//EN"
+       "dita/learning/dtd/learningObjectMap.dtd"
+
+PUBLIC "-//OASIS//DTD DITA 1.3 Learning Overview//EN"
+       "dita/learning/dtd/learningOverview.dtd"
+PUBLIC "-//OASIS//DTD DITA Learning Overview//EN"
+       "dita/learning/dtd/learningOverview.dtd"
+
+PUBLIC "-//OASIS//DTD DITA 1.3 Learning Plan//EN"
+       "dita/learning/dtd/learningPlan.dtd"
+PUBLIC "-//OASIS//DTD DITA Learning Plan//EN"
+       "dita/learning/dtd/learningPlan.dtd"
+
+PUBLIC "-//OASIS//DTD DITA 1.3 Learning Summary//EN"
+       "dita/learning/dtd/learningSummary.dtd"
+PUBLIC "-//OASIS//DTD DITA Learning Summary//EN"
+       "dita/learning/dtd/learningSummary.dtd"
+
+PUBLIC "-//OASIS//DTD DITA 1.3 Machinery Task//EN"
+       "dita/machineryIndustry/dtd/machineryTask.dtd"
+PUBLIC "-//OASIS//DTD DITA Machinery Task//EN"
+       "dita/machineryIndustry/dtd/machineryTask.dtd"
+
+PUBLIC "-//OASIS//DTD DITA 1.3 Classification Map//EN"
+       "dita/subjectScheme/dtd/classifyMap.dtd"
+PUBLIC "-//OASIS//DTD DITA Classification Map//EN"
+       "dita/subjectScheme/dtd/classifyMap.dtd"
+
+PUBLIC "-//OASIS//DTD DITA 1.3 Subject Scheme Map//EN"
+       "dita/subjectScheme/dtd/subjectScheme.dtd"
+PUBLIC "-//OASIS//DTD DITA Subject Scheme Map//EN"
+       "dita/subjectScheme/dtd/subjectScheme.dtd"
+
+PUBLIC "-//OASIS//DTD DITA 1.3 Concept//EN"
+       "dita/technicalContent/dtd/concept.dtd"
+PUBLIC "-//OASIS//DTD DITA Concept//EN"
+       "dita/technicalContent/dtd/concept.dtd"
+
+PUBLIC "-//OASIS//DTD DITA 1.3 Composite//EN"
+       "dita/technicalContent/dtd/ditabase.dtd"
+PUBLIC "-//OASIS//DTD DITA Composite//EN"
+       "dita/technicalContent/dtd/ditabase.dtd"
+
+PUBLIC "-//OASIS//DTD DITA 1.3 General Task//EN"
+       "dita/technicalContent/dtd/generalTask.dtd"
+PUBLIC "-//OASIS//DTD DITA General Task//EN"
+       "dita/technicalContent/dtd/generalTask.dtd"
+
+PUBLIC "-//OASIS//DTD DITA 1.3 Glossary//EN"
+       "dita/technicalContent/dtd/glossary.dtd"
+PUBLIC "-//OASIS//DTD DITA Glossary//EN"
+       "dita/technicalContent/dtd/glossary.dtd"
+
+PUBLIC "-//OASIS//DTD DITA 1.3 Glossary Entry//EN"
+       "dita/technicalContent/dtd/glossentry.dtd"
+PUBLIC "-//OASIS//DTD DITA Glossary Entry//EN"
+       "dita/technicalContent/dtd/glossentry.dtd"
+
+PUBLIC "-//OASIS//DTD DITA 1.3 Glossary Group//EN"
+       "dita/technicalContent/dtd/glossgroup.dtd"
+PUBLIC "-//OASIS//DTD DITA Glossary Group//EN"
+       "dita/technicalContent/dtd/glossgroup.dtd"
+
+PUBLIC "-//OASIS//DTD DITA 1.3 Map//EN"
+       "dita/technicalContent/dtd/map.dtd"
+PUBLIC "-//OASIS//DTD DITA Map//EN"
+       "dita/technicalContent/dtd/map.dtd"
+
+PUBLIC "-//OASIS//DTD DITA 1.3 Reference//EN"
+       "dita/technicalContent/dtd/reference.dtd"
+PUBLIC "-//OASIS//DTD DITA Reference//EN"
+       "dita/technicalContent/dtd/reference.dtd"
+
+PUBLIC "-//OASIS//DTD DITA 1.3 Task//EN"
+       "dita/technicalContent/dtd/task.dtd"
+PUBLIC "-//OASIS//DTD DITA Task//EN"
+       "dita/technicalContent/dtd/task.dtd"
+
+PUBLIC "-//OASIS//DTD DITA 1.3 Topic//EN"
+       "dita/technicalContent/dtd/topic.dtd"
+PUBLIC "-//OASIS//DTD DITA Topic//EN"
+       "dita/technicalContent/dtd/topic.dtd"
+
+PUBLIC "-//OASIS//DTD DITA 1.3 Troubleshooting//EN"
+       "dita/technicalContent/dtd/troubleshooting.dtd"
+PUBLIC "-//OASIS//DTD DITA Troubleshooting//EN"
+       "dita/technicalContent/dtd/troubleshooting.dtd"
+
+PUBLIC "-//OASIS//ELEMENTS DITA 1.3 Mathml3 Driver//EN"
+       "dita/technicalContent/dtd/mathml3-ditadriver.dtd"
+
+PUBLIC "-//OASIS//ELEMENTS DITA 1.3 MathML 3//EN"
+       "mathml/mathml3/mathml3.dtd"
+
+PUBLIC "-//OASIS//ELEMENTS DITA 1.3 SVG 1.1 Driver//EN"
+       "dita/technicalContent/dtd/svg11-ditadriver.dtd"
+
+PUBLIC "-//OASIS//ELEMENTS DITA 1.3 SVG 1.1//EN"
+       "svg11/svg11-flat.dtd"
+
+PUBLIC "-//OASIS//ELEMENTS DITA 1.3 XNAL Domain//EN"
+       "dita/xnal/dtd/xnalDomain.mod"
+PUBLIC "-//OASIS//ELEMENTS DITA XNAL Domain//EN"
+       "dita/xnal/dtd/xnalDomain.mod"
+
+PUBLIC "-//OASIS//ENTITIES DITA 1.3 XNAL Domain//EN"
+       "dita/xnal/dtd/xnalDomain.ent"
+PUBLIC "-//OASIS//ENTITIES DITA XNAL Domain//EN"
+       "dita/xnal/dtd/xnalDomain.ent"
+
+PUBLIC "-//W3C//DTD MathML 2.0//EN"
+       "mathml/mathml2/mathml2.dtd"
+
+PUBLIC "-//W3C//DTD MathML 3.0//EN"
+       "mathml/mathml3/mathml3.dtd"

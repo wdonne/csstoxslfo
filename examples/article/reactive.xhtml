@@ -1,0 +1,643 @@
+<?xml version='1.0' encoding='UTF-8'?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd" []><html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+  <head>
+    <title>Reactive Systems</title>
+    <link href="assets/xhtml_article.css" type="text/css" rel="stylesheet"/>
+    <link href="assets/style.css" type="text/css" rel="stylesheet"/>
+  </head>
+  <body>
+    <div class="bottom">
+      <span/>
+    </div>
+    <div class="head">
+      <h1>Reactive Systems</h1>
+      <p>Werner Donn&#233; &lt;werner.donne@pincette.net></p>
+      <p>1 June 2017</p>
+      <div class="abstract">
+        <h1>Abstract</h1>
+        <p>The cloud has brought us new architectures that provide massive scalability and
+          availability. Some in the industry have gathered around an initiative called the
+            <q>Reactive Manifesto</q>. It defines the characteristics of reactive systems, which
+          constrain the architectures behind such systems. I will try to describe in a practical way
+          how a reactive system could be created using technologies such as Play, Akka, Kafka,
+          Cassandra, Elasticsearch, etc., on the server side and ReactJS, Redux, Immutable on the
+          client.</p>
+      </div>
+    </div>
+    <h1>Scalability</h1>
+    <p>A system is truly scalable when you can increase its throughput in a near linear way by just
+      adding resources to it. This is not so easy to achieve, because it means there cannot be a
+      single bottleneck. If there is one it will become apparent when the number of users increases
+      to hundreds of thousands or millions.</p>
+    <p>Traditionally systems are scaled up when more capacity is needed. This means bigger machines
+      are used, with more <acronym>CPU</acronym>s, larger or more disks, more
+      <acronym>RAM</acronym>, etc. There is a technical and financial limit to how far you can go
+      with that. The application software can be made stateless, so that it becomes easy to spread
+      it over several machines. If it is not stateless there will have to be some sort of cache
+      management, which will generate a lot of overhead when the number of machines increases.
+      However, stateless software will simply move the problem to the central database, where
+      concurrency control will slow everything down. These are the problems Service Oriented
+      Architectures (<acronym>SOA</acronym>) are faced with.</p>
+    <p>It is better to scale out a system when higher throughput must be handled. While scaling up
+      is vertical, scaling out is horizontal, i.e. you just add more of the same hardware. The
+      machines are usually simple and cheap. Of course, the software architecture must be able to
+      cope with that and preferably without going down each time the capacity has to be increased.
+      Only a truly distributed architecture running on a cluster of machines will make this
+      possible. Moreover, it allows capacity to decrease as well. Such elasticity is vital in the
+      cloud, where companies have to quickly adjust their resources to temporary sudden changes.
+      They pay only for what they actually use. There is no need to invest in a large system that
+      can handle Black Friday's rush and does almost nothing during the rest of the year.</p>
+    <p>Creating distributed systems is hard, but we are fortunate to have so many brilliant software
+      products that handle the hardest parts for us.</p>
+    <h1>Reactive Manifesto</h1>
+    <p>The Reactive Manifesto&nbsp;[1] defines what reactive systems are, according to the group of
+      people that have signed it and hopefully many beyond that. It defines four essential
+      properties such a system should have.</p>
+    <h2>Responsive</h2>
+    <p>This one is obvious. Every system should have it. It is, however, not easy to provide
+      consistent responsiveness under varying loads and in the face of failure. Making sure that
+      response times are rather constant (and short) requires a predictable critical path between a
+      request and its response. Bottlenecks move a system away from predictability. The other thing
+      is that failures should surface quickly and be handled efficiently. This is one reason why a
+      failure should leave the critical path as soon as possible. It should be more of an
+      out-of-band thing.</p>
+    <h2>Resilient</h2>
+    <p>Every part of a system may fail at some point. The question is rather when. A failure should
+      never take down a system as a whole, preferably not even a specific service in it. As a
+      consequence, tight coupling between components should be avoided. One part shouldn't stall
+      because some other it depends on fails. This could very quickly escalate. The solution is to
+      let components only interact through asynchronous non-blocking message passing.</p>
+    <p>On top of that, request/response interactions should be avoided where possible, because then
+      data can flow mostly in one direction through the system. Only in situations where some
+      component needs to aggregate the results of other components you need a request/response style
+      of communication. An obvious example is a client-facing component that has received a request
+      and is supposed to provide an answer. But even then we can reduce the weight of such an
+      exchange in many cases, as we will see later.</p>
+    <p>Failures can be isolated through the replication of services as well as data. The chance of
+      systems failing in groups is much lower than the chance that a single failure occurs
+      somewhere. It depends on how much money you want to spend on redundancy and physical
+      dispersion. When services are load-balanced over a cluster of nodes, any member can take over
+      when one fails. This way the failure can be limited to one request. When the database system
+      duplicates data over several nodes and is able to transparently work with all replicas, a
+      failure doesn't even have to be visible.</p>
+    <p>This brings us to another important aspect of resilience. A system should as much as possible
+      recover from failure without the intervention of people. A database system can have a replica,
+      which is temporarily behind because of a failure, but it should have the mechanisms to let it
+      catch up automatically. A service that has failed should be able to heal itself. In the
+      reactive world it is normal to let a component just crash and throw it away when it does. It
+      will be replaced with a new instance. Less drastic measures are needed when resurrecting a
+      component is an expensive operation.</p>
+    <h2>Elastic</h2>
+    <p>If a system is to have a consistent responsiveness it should be able to adapt flexibly to
+      changing workloads. As demand varies resources are acquired and released. In today's server
+      environments this can happen automatically. A nice consequence is that companies only pay for
+      what they actually use. There are various cost profiles, depending on how much you wish to
+      provision upfront.</p>
+    <p>Such scalability in both directions puts a direct constraint on the software architecture.
+      There can't be any kind of bottleneck. As a consequence, everything should be distributable
+      dynamically without direct dependencies between components. The infrastructure underneath
+      should also be manageable in a flexible way. A popular open source system to achieve this is
+      Apache Mesos&nbsp;[2].</p>
+    <h2>Message Driven</h2>
+    <p>Within reactive systems components should communicate strictly with asynchronous message
+      passing. This exposes a point where the infrastructure can intervene in an orthogonal way. For
+      example, the communication can be made location transparent, so the sender doesn't have to
+      know where the destination actually resides. Flow control, failure handling, adapting to
+      varying load, etc. are also possible without the application code knowing anything about
+      it.</p>
+    <p>Messaging is the enabler for the other three properties. A system can be perfectly elastic,
+      because when a component send a message it doesn't know how it will be routed. There could,
+      for example, be a load balancer in between that automatically grows and shrinks a pool of
+      machines when needed.</p>
+    <p>Resilience is also enhanced by message passing. The infrastructure could perform retries when
+      the destination fails. Messages could be persisted until everything works again. On the other
+      hand, the destination could consist of a set of replicas, making a total failure less
+      likely.</p>
+    <p>Responsiveness is sustained by elasticity and resilience, since it keeps the system fast and
+      available. However, message driven communication is also a direct enabler of responsiveness,
+      because a lot of work can be handled asynchronously. The client doesn't necessarily have to
+      wait until it is all finished. We will see later that this requires another take on what needs
+      to be confirmed immediately and how errors and failure are handled.</p>
+    <h1>Asynchronous And Non-blocking</h1>
+    <p>Synchronous systems waste a lot of resources. Each time a thread is in a blocking wait state,
+      e.g. for <acronym>I/O</acronym>, it can't do anything else. In order to increase concurrency
+      you need to create more threads. However, a thread is an expensive resource and more threads
+      only lead to more scheduling overhead, because there are only so many <acronym>CPU</acronym>
+      cores in one machine.</p>
+    <p>Asynchronous programming solves this problem and Java has made is relatively easy to do it.
+      Instead of calling a function directly you can ask an <em>executor</em> to run it when it has
+      time. The expression of this fact is called a <em>promise</em>. It will return a
+        <em>future</em> that gives you the result when it is available. These concepts were
+      introduced in the seventies of last century.</p>
+    <p>If you have several code blocks that depend on one another then, with only futures, you would
+      still have to take care of the synchronisation of the blocks. Therefore, Java has
+        <em>completion stages</em>, which can be chained. The result of a code block in a chain is
+      passed to the next block as soon as it is available. This way you compose a structure that you
+      pass to one or more executors. Such a structure has the form of a directed acyclic graph. Deep
+      type inference makes sure the complete structure is statically type checked. With lambda
+      expressions you can write compact code like this:</p>
+    <pre xml:space="preserve">return
+  CompletableFuture.
+    supplyAsync(() -> v1).
+    thenApplyAsync(v1 -> v2).
+    thenApplyAsync(v2 -> v3);</pre>
+    <p>This will only be useful if the code blocks don't block the thread they are running on. The
+      executors schedule all work that is given to them. They try to maximise throughput and are
+      only constrained by the dependencies between code blocks. This is done with a special
+      fork-join thread pool. It can efficiently fork off work and synchronise it. Idle threads are
+      parked so they can't be scheduled by the system. In fact the pool needs only as many threads
+      as there are cores or hyper threads in the system. If the threads can be stuffed with work
+      that doesn't block them, the amount of context switching by the operating system can be
+      greatly reduced (there will be other processes of course). This way the executors have full
+      control over the actual concurrency. If you use a resource management system such as Mesos
+      then you can specify how many <acronym>CPU</acronym>s an application will get and the latter
+      will be able to saturate it efficiently. This way you pay for the resources you actually
+      use.</p>
+    <p>However, when you use outside systems directly, e.g. a web service or a database, the
+      available <acronym>API</acronym>s are not necessarily non-blocking. In that case you will have
+      to configure a <q>classic</q> thread pool for such a resource. This is then controllable in an
+      explicit way. There are more and more asynchronous non-blocking alternatives now. If you use
+      the Akka framework&nbsp;[3][4] then you have the Akka <acronym>HTTP</acronym> client library
+      to call web services. It always returns a completion stage that fits nicely in an asynchronous
+      code structure as shown above.</p>
+    <h1>The Actor Model</h1>
+    <p>While asynchronous programming is not too difficult and provides efficient execution, it is
+      not something you want to do all over the place. When a piece of code is worth running
+      asynchronously then it possibly represents some kind of service other components can call
+      upon. This can be made explicit by turning components into actual services, more specifically
+      micro services. Components communicate by sending messages to each other, which happens
+      asynchronously. Each micro service handles the incoming messages one at the time.</p>
+    <p>This is what the actor model is about. It was introduced by Carl Hewitt in 1973. The company
+      Ericson implemented it in their programming language Erlang&nbsp;[5], which they used for
+      their telecommunication networks. A more recent implementation of the model is the Akka
+      framework. It is written in Scala, but also has a Java <acronym>API</acronym>. In Akka actors
+      are very lightweight units of which you can easily have millions.</p>
+    <p>Another problem with using only asynchronous programming is that the compositions are not
+      resilient. When some part fails in a chained sequence of futures there is not a lot you can
+      do. Basically the whole chain is lost. When the parts are implemented as actors they can send
+      messages to each other in a fire-and-forget fashion. The system can then be configured with a
+      policy to handle failures, case by case. A message could be dropped, resent a couple of times
+      (or forever), persisted for later retrial or sent back to the originator as a failed message.
+      The latter would then see it again in its input queue.</p>
+    <p>Pure asynchronous composition of components also doesn't provide much control over
+      concurrency. We saw earlier that you can assign a defined amount of resources to an
+      application through something like Mesos. You can even scale it out over as much machines as
+      you like. This is, however, very coarse grained. If all you have is asynchronous composition
+      then all components always run together, which means they are all scaled out in the same way.
+      By turning components into actors you can choose per actor how you scale out.</p>
+    <p>Akka uses a supervisor model, where an actor can create child actors, for which it is
+      responsible. An example is the routing actor. It creates child actors to which the actual
+      messages are sent. The life cycle of the children depends on the policy employed by the
+      router. You could configure a round-robin load balancing policy, for example. You can also
+      write your own. In Akka a reference to an actor is location transparent. So if you combine
+      Akka routing with Akka remoting or Akka clustering you can scale out a particular micro
+      service without the message senders knowing about it.</p>
+    <h1>Domain Driven Design</h1>
+    <p>This term was coined by Eric Evans in 2003&nbsp;[6]. It proposes a very iterative approach to
+      software development in which all phases are strongly connected. The central idea is that you
+      develop a <em>ubiquitous language</em>, which is shared by all stakeholders such as domain
+      experts, modellers, designers, developers, testers, etc. Even the name of a class or a
+      function should come from this language. This is a great idea, because it solves one of the
+      biggest problems we all have and that is communication.</p>
+    <p>An application is the interaction of several domains, which can be very small. A very
+      important notion is that a domain defines a bounded context. This provides complete
+      encapsulation. Business entities are usually composed of several parts, but you're not allowed
+      to interact directly with those parts. Access always occurs through the <em>aggregate
+        root</em>. Conceptually the business entity sits in its own private database. As a
+      consequence, there cannot be any interference at the data level, not even between instances of
+      the same domain.</p>
+    <p>This is truly visionary, because it allows us to do cluster sharding. An aggregate root is
+      identified by a unique identifier, e.g. a <acronym>UUID</acronym>. The roots can be spread
+      over cluster nodes through consistent hashing of the identifier. This is a very fast operation
+      that determines the correct shard on which a particular entity resides. All nodes in a cluster
+      use the same hashing function, so you can reach an entity through any of them.</p>
+    <p>With a central relational database this is much harder to do. Entities are spread over
+      several tables, which have different sizes. Therefore, you can't shard them uniformly, unless
+      you allow trashing of disk space. The largest table will then impose the number of nodes you
+      need in the cluster. Without trashing it can't be avoided that the parts of an entity end up
+      on different nodes.</p>
+    <p>Note that the bounded context doesn't mean that entities can't have relations between each
+      other. When an entity wants to refer to another it has to use the identifier of its aggregate
+      root, just like any other client has to.</p>
+    <h1>Event Sourcing</h1>
+    <p>When a user works with a business entity she uses a presentation of some kind. In a classic
+      system the entity is decomposed in table records whenever it changes and reassembled whenever
+      is has to be rendered. This is great for analytical purposes, because a relational database
+      lets you perform cross-cutting queries over all data. However, for the day to day
+        <acronym>CRUD</acronym> operations this is not so great. It kills scalability and
+      resilience. A central database wants to be the source of truth at any point in time, while
+      this is not always required. Therefore, it is better to use a specialised database system for
+      each purpose and make sure those purposes are not tightly connected.</p>
+    <p>Event sourcing is an interesting alternative that was introduced by Martin Fowler in
+      2005&nbsp;[7]. A relational database uses a transaction log with which the application state
+      is updated later. So the application state is the source of truth and the log is transient.
+      With event sourcing this is turned around. Updates are saved in the form of events that
+      express the changes. They are written in the event log, which is the only source of truth.
+      Application state can always be reconstructed from the event log. It can be cached in any way
+      you want. There are couple of advantages:</p>
+    <ul>
+      <li>It is very fast and hence provides great write throughput, because nothing is ever
+        updated, only appended;</li>
+      <li>It keeps a record of everything that has happened and so you can resurrect the application
+        state that was current at any point in time;</li>
+      <li>The event log is open, so the events can be replicated to other systems;</li>
+      <li>Since it is a log, the entries are in sequence and hence in a distributed system it is
+        easy to detect inconsistencies;</li>
+      <li>Application state can be cached in memory without requiring a distributed cache, which
+        must be kept consistent;</li>
+      <li>There is no global concurrency control for updates, not even in bulk, because individual
+        entities can only be updated sequentially, while entities can't interfere with each
+        other.</li>
+    </ul>
+    <p>A database system behind this should provide atomicity, fast event queries and distribution.
+      There are many candidates in the NoSQL realm, but relational database systems could also be
+      used, because you need only one table with one column for the entity identifier and one for
+      the value. In this case partitioning would be uniform.</p>
+    <p>Akka supports this scenario with the cluster sharding and persistence modules. You can find
+      several persistence plug ins on Scaladex&nbsp;[8]. The one for the Cassandra database
+      system&nbsp;[9] seems to be the most up-to-date at the time of writing. Another interesting
+      one is the Kafka plug-in. Kafka&nbsp;[10] is a distributed high-throughput log and therefore
+      it is suitable as an event log. Of course, Kafka is more known for its distributed messaging
+      capabilities, where senders write messages to topics. It will come back later in this
+      article.</p>
+    <p>In Akka a persistent actor has a second message receiver for recovery. It receives the events
+      in sequence and can replay them in order to resurrect the application state in memory. This
+      happens each time the actor is created, which happens automatically when it is addressed.
+      After a while the number of events can be so high that recovery starts to take too much time.
+      That is why Akka persistence has the snapshot feature. You can configure after how many events
+      a snapshot should be saved. A snapshot represents the complete application state. Recovery
+      will start from the last snapshot. The recovery receiver will get a special message for this.
+      It will be followed by the events that occurred later. While recovery is ongoing the messages
+      that arrive in the regular mailbox will be stashed, so there is no interference.</p>
+    <h1>CQRS</h1>
+    <p>I said above that it makes sense to use special database systems for different purposes. This
+      is also true for updating and reading data. The concept Command Query Responsibility
+      Segregation&nbsp;[11] covers that aspect. It says that you should use different models for
+      updates and reads. Commands that are sent to the system can lead to changes and those changes
+      are stored in a certain way, but this is not necessarily efficient for performing queries.
+      Moreover, there are many different kinds of queries you could imagine. Each may need its own
+      model.</p>
+    <p>The previous section presents a specialised method for storing the changes commands may
+      cause. Clearly, an event log is not really interesting for queries. You'd rather do those on
+      the application state, i.e. the entities.</p>
+    <p>So we need another model for queries, one that stores the entire application state. But since
+      we can't predict how many different systems will be used for specialised queries we'd better
+      decouple the read side completely. A convenient way to do this it to let the persistent actor
+      copy each event it emits to a topic in Kafka. Interested systems can subscribe to it. They can
+      consume all events and apply them to the application state they maintain, their form of the
+      application state that is. In Kafka topic are divided in shards, which are spread over cluster
+      nodes. If you provide a key then Kafka will apply consistent hashing to determine the correct
+      shard. Within a shard the order of the messages is guaranteed. If we use the entity identifier
+      as the key then we can make sure all events concerning an entity are consumed in the correct
+      order.</p>
+    <p>A popular search system that is often hooked up this way is Elasticsearch&nbsp;[12]. It is a
+      distributed system, which supports full-text search, exact search, aggregations and
+      geolocation. It comes with an extensive <acronym>REST</acronym>
+      <acronym>API</acronym> and it is very fast. This covers most needs for operational
+      applications, but it also goes a long way in analytics.</p>
+    <p>There are, of course, many other kinds of analytics, which require correlations, map/reduce
+      algorithms, deep learning, etc. You can create data pipes for any of them. Each pipe is a
+      Kafka consumer of the same topic. Consumers don't interfere with each other, because Kafka
+      remembers where each of them is in the stream. So a consumer can go away and pick up later
+      where it left. You only have to configure the retention period of the topic in such a way that
+      all consumers can operate correctly.</p>
+    <p>A special kind of query is simply requesting the application state of an entity. It would be
+      a bit heavy to separate that function from the persistent actor with Kafka. In theory we could
+      just send the request to the persistent actor, because it has the application state in memory.
+      However, an actor handles the messages in its mailbox one by one. This is great, because it
+      frees us from concurrency problems when updating. But it also means that read requests are
+      held up by the slower updates. Therefore, a persistent actor could come with a read companion,
+      which is cluster sharded with the same identifier. Instead of building the in-memory
+      application state itself, the persistent actor could send all events to the companion actor,
+      which keeps the application state in memory. That way we have two mailboxes, one for reads and
+      another for writes. The persistent actor would have to be the supervisor of the companion
+      actor, so that both appear and disappear together. The following figure shows an overview.</p>
+    <div class="img fig1">
+      <img src="assets/event.pdf" alt="event.pdf"/>
+    </div>
+    <h1>Now and Then</h1>
+    <p>A classic system with a central database always represents the complete state as it is now.
+      It provides only a view of the present and guarantees everything is consistent. It can't
+      afford inconsistencies, because then not all parts of the data are in the present. This can
+      have vast consequences. Imagine, for example, that we have a table that represents all
+      countries. Many records would refer to countries, perhaps through the <acronym>ISO</acronym>
+      code. What would happen when the code of a country changes? There would have to be one
+      transaction that modifies all references at the same time. Such a transaction could be very
+      large and escalate to table locks. This may stall the system. Therefore, you could consider
+      doing it at a quite moment, during the night for example. However, if you're operating
+      globally then there is no quite moment.</p>
+    <p>One trick it to use numeric identifiers to refer to other records. In this case the country
+      code would be in only one place and changing it would not have any impact on the rest of the
+      system. The price is the loss of a functional dependency, which is no longer expressed by the
+      database. You may also need extra indexes.</p>
+    <p>In general, however, this trick will not work. What happens when a country is split in two,
+      making the former country code invalid? There would be two new country records and there may
+      be a lot of records for which a choice has to be made. They would have to be updated in any
+      case in order to preserve a consistent view of the present.</p>
+    <p>An approach to represent the past is to introduce time in the data model. The country code,
+      for example, could have a validity period. References to country codes could take this into
+      account. It turns out that it would become very complicated very quickly. In fact, this
+      approach would be embedded in practically the entire data model. Just imagine the time range
+      queries all over the place.</p>
+    <p>In an event sourcing system there is no <em>now</em>. There is no global representation of
+      the present. Instead, a record is kept of everything that has happened. What has happened is
+      in the past and can't be undone. Therefore, the events in an event log are immutable. So when
+      new or modified entities arrive in the system they are validated against what was known at
+      that time.</p>
+    <p>If a country code changes then the next time an entity, which uses the old code, is presented
+      to the system it will not pass validation until is updated. This only leads to a new event,
+      which is appended to the event log. There is no need to update older events, because at their
+      time the old country code was valid.</p>
+    <p>This is also how we work in real life. A book about Czechoslovakia written before 1993 was
+      valid at that time. After the country was split in the Czech Republic and Slovakia we wouldn't
+      go and update all copies of that book to reflect the new situation. If later a new edition of
+      the book were to come out then it would mention the two new countries.</p>
+    <p>The fact that events are immutable makes it possible to copy over the needed parts of another
+      entity instead of referring to it. This introduces redundancy, but it doesn't really matter,
+      because the data is guaranteed to be consistent with the other entity at the time of the
+      event. It will remain so forever. Of course, it depends on the subject whether or not you do
+      this. For reference data it seems like a good fit.</p>
+    <h1>Concurrency Control</h1>
+    <p>We already know that all modifications to an entity are serialised, because they are handled
+      by a persistent actor, which has only one mailbox. An actor consumes the messages in its
+      mailbox one by one. Since an entity lives in a bounded context we don't have to fear updates
+      from anywhere else.</p>
+    <p>However, this doesn't mean everything is solved. Several users could be changing an entity at
+      the same time. If we do nothing then the last update wins, which is only nice for one user.
+      The others will not even know their work is lost. It is not entirely lost, because the event
+      is in the event log, but they don't have access to that. Moreover, this is something
+      random.</p>
+    <p>In some cases it may be possible to merge different changes and thus reach a consistent
+      state. The order of the changes wouldn't matter then. Conflicting changes could be reported
+      back to the user as a validation error. The user could then try to do something about it. Work
+      would not be lost, but some co-ordination between users may be needed.</p>
+    <p>A safer method is to make sure only one user at the time can modify an entity. We can borough
+      an idea from WebDAV, which has a locking feature&nbsp;[13]. When an entity receives a lock
+      command it puts itself in a locked stated by adding a <q>lock</q> field containing a unique
+      lock token. The event corresponding to this should only be saved and not sent out to Kafka or
+      the view actor. It doesn't describe any meaningful state change. The lock token is put in the
+      reply to the issuer of the lock command.</p>
+    <p>Subsequent changes to the entity that don't carry the lock token are rejected. In order to
+      avoid the possible loss of work, a form with which the entity is edited should first try to
+      lock the entity. When the form is closed the entity should be unlocked automatically. Things
+      can go wrong and so it may be interesting to also implement the lock timeout and lock refresh
+      features of WebDAV.</p>
+    <h1>Transactions</h1>
+    <p>Do we need transactions? Of course we do. When a persistent actor writes an event to the
+      database we want the operation to be atomic and durable. It is isolated by construction,
+      because an entity can only be managed by one actor. It is also consistent, because with event
+      sourcing we don't manage the global truth. We only save a modification of an entity.<span class="footnote-reference"/><span class="footnote-body">This corresponds to the update of several tables in a relational database in one transaction.</span> Possible
+      consumers of the event will see it a bit later. They will become <em>eventually
+        consistent</em> with the event source. While a distributed system can't provide a globally
+      consistent view, it <em>must</em> make sure all parties see the exact same sequence of events,
+      of the subset they are interested in that is.</p>
+    <p>This approach saves us from distributed transactions, which are very expensive. At any point
+      we have at most two persistent resources to take care of. A persistent actor needs to write an
+      event to the database and to a Kafka topic, in that order, because the database is the event
+      source. When delivering the event to the topic fails devops should be aware of it. This will
+      only be the case when there are serious problems, because a Kafka producer can be configured
+      to retry automatically, infinitely even.</p>
+    <p>Even when the Kafka topic is available messages could be lost. This depends on the employed
+      delivery semantics. You can say that a message should be delivered at most once. This is very
+      fast, but not very reliable. There are cases where this is just fine. You can also say it
+      should be delivered at least once. This is still quite fast and it is reliable, but you may
+      have duplicates. Finally, you can specify that messages should be delivered exactly once. This
+      is perfectly reliable, but it is also the slowest method.</p>
+    <p>It turns out that we can do with <em>at least once</em> semantics, which is reliable and very
+      fast. The trick is to use sequence numbers. This makes events idempotent. Any event with a
+      sequence number lower than that of the entity that is to be updated can be ignored. This means
+      all events in an event source could be replayed to the corresponding Kafka topic.<span class="footnote-reference"/><span class="footnote-body">Note that it is very important
+        to always use the entity identifier as the key for the Kafka message. This makes sure those
+        message always go the same Kafka shard, which guarantees all messages will be consumed in
+        the order they were delivered.</span></p>
+    <p>On the other hand, a hole in the sequence of events is evidence of an inconsistency. The
+      event stream should be stopped and a failure raised.</p>
+    <p>We can see now that the actual time an event occurs at doesn't matter. We only need to know
+      that this happened before or after that. Clocks are not precise enough to guarantee that
+      order.</p>
+    <p>So how do we go about a situation where a command affects more than one entity and where all
+      effects should either succeed or fail together? With a central database this is simple. You
+      create a transaction and either it commits or it is rolled back. If the data is in more than
+      one database you will need a distributed transaction. This is more complicated because it can
+      fail and be left in a heuristic state. Human intervention will be required to fix it. This
+      still holds for distributed systems.</p>
+    <p>Moreover, in such a system all entities are isolated from each other, so we couldn't use a
+      distributed transaction, even if we wanted to. A possible approach is to make the transaction
+      explicit. You create a message that describes the transaction and save it in a Kafka topic.
+      After this you know that the transaction will be handled one way or the other. A transaction
+      co-ordinator picks up the message, extracts the involved entities and locks them. It then
+      sends the transaction message to all entities. The latter process the message, but when they
+      save an event it is marked with a <q>prepare</q> field. The event is not sent out to Kafka or
+      the view actor. The transaction co-ordinator waits for all the answers, using the Akka
+        <q>ask</q> pattern. When they are fine it sends a commit message to the entities. Otherwise
+      a rollback message is sent. In both cases the entities are unlocked.</p>
+    <p>This requires some co-operation on behalf of the persistent actors. Instead of processing
+      events one by one they should maintain an event buffer, two deep. A prepare followed by a
+      commit should be applied and when it is followed by a rollback it should be ignored. This can
+      be implemented once on a generic way of course.</p>
+    <p>Such co-ordination comes at a cost. The whole chain of events is handled during the
+      processing of one message by the transaction co-ordinator and it handles messages one by one
+      like any other actor. It still scales out, however. Firstly, everything happens in an
+      asynchronous non-blocking way. Secondly, a transaction only locks a set of entities, nothing
+      else. Since entities are always isolated you have a large amount of transaction co-ordinator
+      instances. There is no need to limit the number of concurrent transactions, but you could
+      using Akka routing, which works with bounded actor pools.</p>
+    <h1>JSON</h1>
+    <p>This is a very popular format, supported by many systems. So why wouldn't we use it to
+      represent an entity? It enables generic solutions. In event sourcing, for example, the events
+      could be a representation of the difference of the current state and the new state. A standard
+      representation is defined by <acronym>RFC</acronym> 6902&nbsp;[14]. This is ideal for
+      persistent actor recovery. All you need to write is a <acronym>JSON</acronym> diff and patch
+      library.</p>
+    <p>It is also possible to generalise entity related business logic. After all, it mostly is a
+      validation followed by a transformation. The result is the new state, which is compared with
+      the current state. A validator is a function of the current and the proposed new state. When
+      everything is fine it returns the new state and otherwise it returns the old state annotated
+      with the errors. The transformer is a function with the same signature as the validator.</p>
+    <h1>Errors and Failure</h1>
+    <p>Errors are what users did wrong, while failures are what systems did wrong or couldn't do.
+      Errors are usually discovered by some validation function. They are reported back to the user
+      and should therefore be clear and precise. A failure can be reported back too, but it makes no
+      sense to provide any details. The system just couldn't do it and the precise reason is not
+      relevant to the user. If the system knows the failure was intermittent it could suggest to the
+      user to try again later, but then again, since were dealing with asynchronous decoupled
+      systems they could try again themselves. If business data has been delivered, the request
+      should be recorded persistently in case it is valid. Whatever failures that may occur later
+      are a matter for devops in case self healing doesn't work.</p>
+    <p>After a request has been successfully validated nothing can logically go wrong anymore. If
+      that would be the case then it is a failure. So it is important to either process the request
+      successfully or store it persistently after validation. The simplest approach is to go ahead
+      and process it. Actors work in a supervision hierarchy. When the code in an actor has an issue
+      you just let it crash. The supervisor can then decide how to handle this. Often the actor is
+      restarted, which creates a new instance. Persistent actors are usually managed through Akka
+      cluster sharding and the default supervision behaviour of that is restarting the actors.</p>
+    <p>However, the <code>preRestart</code> phase gives you the opportunity to do something with the
+      last message before the actor dies. This is where the request could be stored in a
+        <q>validated</q> Kafka topic. You then have to make sure that the stored message is
+      processed before any new ones during initialisation. When creating the actor receiver you can
+      use the <em>become</em> feature of Akka, which is a mechanism to replace the current receiver
+      with a new one. The initial receiver only handles an <q>init</q> message and stashes all other
+      messages. Stashing is another Akka mechanism where incoming messages hold back and replayed
+      later. The init message can be sent to the actor itself in the <code>preStart</code> phase. In
+      the init handler you consume the <q>validated</q> topic and when you're done you swap in the
+      real receiver and unstash all messages. Clearly, such a mechanism should be implemented
+      generically.</p>
+    <p>We saw earlier that validation is a function of the current state and the proposed new state.
+      For this to work the function should run inside the persistent actor, together with the
+      transformer. The three parts can't run in different actors and pass on messages to each other,
+      because it would create a queue between validation and the rest. This queue could mean that
+      the validation function sees stale data. The current state would not yet reflect the outcome
+      of the commands that are ahead in the queue. So validation, transformation and persistence
+      should be in one asynchronous chain. The general processing sequence is shown in the figure
+      below.</p>
+    <div class="img fig3">
+      <img src="assets/entity.pdf" alt="entity.pdf"/>
+    </div>
+    <h1>Clients</h1>
+    <p>Clients usually interact with server systems through a <acronym>REST</acronym>
+      <acronym>API</acronym>. The broad functional categories are search, <acronym>CRUD</acronym>
+      and launching services, which usually do stuff on data sets. All state goes through the
+        <acronym>API</acronym>.</p>
+    <p>We saw that on the server everything works in a reactive way. Actors react to the messages in
+      their mailbox. Kafka consumers react to the events that arrive in the topics they listen to.
+      Everything is isolated. There is no fiddling with each other's state. Messages mostly flow in
+      one direction, assuming everything goes well. When something fails the system tries to heal
+      itself and if that isn't possible the failure is handled out-of-band. Only when there is a
+      client that works in a request/response fashion do we have to reply directly. (The other
+      exception is transaction co-ordination.)</p>
+    <p>Why wouldn't we apply the same principles in the client? In traditional client frameworks
+      components can interact with each other directly through events and state sharing. This
+      creates a big ball of mud [15], where there are so much dependencies that you can't predict
+      what will happen when you touch something. In fact, it is the same kind of big ball you have
+      in traditional monolithic server systems where everything is directly coupled. Reactive
+      systems, with their message passing, help to disentangle the ball. So how can we disentangle
+      the client ball?</p>
+    <p>This is where the flow architecture and component-oriented web development come in. A client
+      is a tree of components, which don't share state. They are asked to render themselves based on
+      the state that is given to them. In other words, when applying the principle strictly,
+      components are a pure function. An interactive component that wants to change state can't do
+      it directly. It can only dispatch the desire to do so. Such events arrive in a central data
+      store and there it is decided what should happen. If the decision leads to a change of the
+      state in the store, the entire state is propagated again through the component hierarchy from
+      top to bottom. As a consequence, data flows only in one direction.</p>
+    <div class="img fig2">
+      <img src="assets/flow.pdf" alt="flow.pdf" style="width: 70%"/>
+    </div>
+    <p>ReactJS&nbsp;[16] and Redux&nbsp;[17] are two frameworks that implement the flow architecture
+      very well, when used together. With Redux you have only one central data store with all data
+      in it. So there are no intermediate components that also have state. The central state can
+      only be changed by reducers. A reducer is a pure function that receives the current state and
+      an action, which may carry new data. It returns a new immutable value, which becomes the new
+      state. Conceptually there is one reducer for the entire data store, but Redux comes with a
+      mechanism that lets you split it in many functions. By default these correspond to the
+      top-level fields in the data store object. For a particular reducer it is very important that
+      it reacts on all actions that have an impact on its part of the state. A reducer should be
+      complete.</p>
+    <p>A great library to use in the central data store is Immutable&nbsp;[18]. It provides
+      immutable collections and allows you to use a functional style. It's reminiscent of the Java
+      stream package.</p>
+    <p>With ReactJS you compose elements whenever the <code>render</code> function is called.
+      However, you don't have to call functions to create the elements. Instead you can use a
+      language called <acronym>JSX</acronym>, which looks like <acronym>XML</acronym>. You embed it
+      in your code. TypeScript people call the language <acronym>TSX</acronym>. A stateless
+      component is just a pure function that returns a <acronym>JSX</acronym> or
+        <acronym>TSX</acronym> structure. You can also create a class, but the only reason to do
+      that is when you want to control the life cycle of the component. The
+        <code>componentWillMount</code> function, for example, is the place you need when the
+      component should dispatch an asynchronous call in order to fetch some initialisation data from
+      the server.</p>
+    <p>Inserting data from the server in the data store is a two-step process. First you dispatch a
+        <q>thunk action</q>, which will launch an asynchronous call to the server. When the result
+      arrives you dispatch another action, which carries the data. This action will be passed to the
+      reducers. Note that Redux has also other mechanisms to do this.</p>
+    <p>You may wonder how this could possibly be fast enough. The entire data store is sent through
+      the component hierarchy each time something changes. The components are then re-rendered.
+      ReactJS has a nice trick for this. The components you generate are not rendered in the
+      physical <acronym>DOM</acronym>, but in a virtual <acronym>DOM</acronym>. The latter is much
+      faster than the former. ReactJS compares the changed virtual <acronym>DOM</acronym> with the
+      current version and only pushed the differences top the physical <acronym>DOM</acronym>, which
+      interacts with your screen real-estate and is therefore very slow. Of course, calculating the
+      difference between two virtual <acronym>DOM</acronym> versions also takes time, but you won't
+      notice this if your page contains a <q>normal</q> amount of information.</p>
+    <p>The second optimisation is that a component can indicate that it doesn't require
+      re-rendering. Redux, has a mechanism that does this for you. You can connect a component at
+      any level to parts of the data store. Redux knows from the reducers which data has changed and
+      hence can decide if re-rendering is required or not. Of course, this assumes that you don't
+      needlessly copy data in your reducers. Another advantage of this mechanism in Redux is that
+      you don't have to pass on the data throughout the entire component hierarchy. Note, however,
+      that this is only useful for application components, which are aware of the data. Generic
+      components should only expose a name and properties. In your application you can always wrap
+      them in a <q>connect</q> component.</p>
+    <p>If you're used to more traditional frameworks then this way of working may need getting used
+      to. At times it also seems wieldy. In the end, however, there is only one mechanism and once
+      you get the hang of that everything becomes crystal clear. You may wonder how you pop up a
+      message box, for example. Well, you don't. You have a message box component on your page
+      permanently. If it has no data then it renders to <code>null</code>, which means it won't be
+      visible. In order to show it you dispatch an action with some text to the data store. When the
+      page is re-rendered the message box will get the data and show itself. When it is closed you
+      dispatch an action that erases the text in the data store.</p>
+    <h1>Web Sockets</h1>
+    <p>These can close the circle, quite literally. A web application usually works with a
+      request/response paradigm. It is difficult to do it otherwise, because <acronym>HTTP</acronym>
+      is a half duplex protocol. This puts a constraint on the server. We would like to pass on
+      messages from component to component and handle problems in an out-of-band way. It gives us
+      the freedom to split the functionality in components, which focus on one thing only. The data
+      moves around as messages, which are fired and forgotten. When a message is sent the sender
+      simply assumes everything will be fine.</p>
+    <p>Because there is a client that wants an answer this scenario becomes a bit more complex. At
+      any point in the chain something can go wrong and the client should be notified about it. In
+      Akka this can be done with the <em>forward</em> mechanism, where the actor context of the
+      original caller is passed along the chain. This makes it possible to send a reply to the
+      caller from anywhere in the chain. It means, however, that all components should be aware of
+      this. We saw earlier that failures should not be handled by the actors themselves. Only when
+      the data delivered by the client wasn't correct should we have to reply. We also saw that when
+      the data is found to be fine the confirmation should be replied quickly, before further
+      processing is done. If later an unsolvable failure would occur the client would be notified in
+      another way. How would that work?</p>
+    <p>Wouldn't it be nice if the client could also work in a fire-and-forget mode? When it ships
+      data it just assumes everything will be fine. Web sockets make this possible. They create a
+      full duplex connection between the client and the server. So whenever the server has something
+      to reply it can do it in its own time. The replies should be self-contained of course.
+      Otherwise the client won't know what to do with them. Messages from the server are handled in
+      the same way as replies from asynchronous calls. The data in them is dispatched to the central
+      data store, which doesn't have to know the source of the data.</p>
+    <p>If your users have an identity then Kafka could be used to implement an interesting scenario.
+      For each user there could be a topic that functions as the mailbox of the user. If the
+      identity of the user flows with the data then any component on the server can send a message
+      to the user. This can be an error, a notification of a definitive failure or the result of a
+      request. The client can even go away. Whenever it reconnects a Kafka consumer is created that
+      reads the mailbox and passes everything to the client. This closes the circle, because all
+      data will always go in one direction, from client to server, within the server, back to the
+      client and within the client. It is one big chain.</p>
+    <p>Another interesting scenario that is enabled by web sockets is <q>live data</q>. When a
+      client is on a page that shows a number of entities it could systematically express interest
+      in them by sending a message to the server. There a Kafka consumer could fetch the entities
+      and listen to the event source topic. It could send all updates to entities to interested
+      clients via their web socket.</p>
+    <div class="references">
+      <div><q>The Reactive Manifesto</q>, <a href="http://www.reactivemanifesto.org" shape="rect">http://www.&#8203;reactivemanifesto.&#8203;org</a>.</div>
+      <div><q>Apache Mesos</q>, <a href="http://mesos.apache.org" shape="rect">http://mesos.&#8203;apache.&#8203;org</a>.</div>
+      <div><q>Akka in Action</q>, Raymond Roestenburg, Rob Bakker and Rob Williams, Manning
+        Publications, September 2016.</div>
+      <div><q>Mastering Akka</q>, Christian Baxter, Packt Publishing, October 2016.</div>
+      <div><q>Erlang</q>, <a href="https://www.erlang.org" shape="rect">https://www.&#8203;erlang.&#8203;org</a>.</div>
+      <div><q>Domain Driven Design</q>, Eric Evans, Addison-Wesley Professional, August 2003.</div>
+      <div><q>Event Sourcing</q>, Martin Fowler, <a href="https://martinfowler.com/eaaDev/EventSourcing.html" shape="rect">https://martinfowler.&#8203;com/&#8203;eaaDev/&#8203;EventSourcing.&#8203;html</a>,
+        December 2005.</div>
+      <div><q>Scaladex</q>, <a href="https://index.scala-lang.org" shape="rect">https://index.&#8203;scala-lang.&#8203;org</a>.</div>
+      <div><q>Cassandra: The Definitive Guide, 2nd Edition</q>, Eben Hewitt and Jeff Carpenter,
+        O'Reilly Media, Inc., July 2016.</div>
+      <div><q>Kafka: The Definitive Guide</q>, Todd Palino, Gwen Shapira and Neha Narkhede, O'Reilly
+        Media, Inc., June 2017.</div>
+      <div><q>CQRS</q>, Martin Fowler, <a href="https://martinfowler.com/bliki/CQRS.html" shape="rect">https://martinfowler.&#8203;com/&#8203;bliki/&#8203;CQRS.&#8203;html</a>,
+        July 2011.</div>
+      <div><q>Elasticsearch: The Definitive Guide</q>, Zachary Tong and Clinton Gormley, O'Reilly
+        Media, Inc., January 2015.</div>
+      <div><q>WebDAV Locking</q>, <a href="http://www.webdav.org/specs/rfc4918.html#locking" shape="rect">http://www.&#8203;webdav.&#8203;org/&#8203;specs/&#8203;rfc4918.&#8203;html#locking</a>.</div>
+      <div><q>RFC 6902: JavaScript Object Notation (JSON) Patch</q>, <a href="https://tools.ietf.org/html/rfc6902" shape="rect">https://tools.&#8203;ietf.&#8203;org/&#8203;html/&#8203;rfc6902</a></div>
+      <div><q>Big Ball of Mud</q>, <a href="https://en.wikipedia.org/wiki/Big_ball_of_mud" shape="rect">https://en.&#8203;wikipedia.&#8203;org/&#8203;wiki/&#8203;Big_&#8203;ball_&#8203;of_&#8203;mud</a>.</div>
+      <div><q>ReactJS</q>, <a href="https://facebook.github.io/react/" shape="rect">https://facebook.&#8203;github.&#8203;io/&#8203;react/</a>.</div>
+      <div><q>Redux</q>, <a href="http://redux.js.org" shape="rect">http://redux.&#8203;js.&#8203;org</a>.</div>
+      <div><q>Immutable</q>, <a href="https://facebook.github.io/immutable-js/" shape="rect">https://facebook.&#8203;github.&#8203;io/&#8203;immutable-&#8203;js/</a>.</div>
+    </div>
+  </body>
+</html>

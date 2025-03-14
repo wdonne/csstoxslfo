@@ -1,0 +1,13 @@
+@import "xhtml.css";
+@import "custom.css";
+@namespace url(http://www.w3.org/1999/xhtml);
+
+@page
+{
+  margin: 0;
+}
+
+body
+{
+  font-size: 10pt;
+}
