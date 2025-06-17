@@ -6,6 +6,7 @@ module net.pincette.csstoxslfo {
   requires net.pincette.sac;
   requires java.logging;
   requires org.jfree.jfreechart;
+  requires net.pincette.tagsoup;
 
   exports net.pincette.csstoxslfo;
 }

@@ -12,11 +12,13 @@ import static net.pincette.util.StreamUtil.takeWhile;
 import static net.pincette.util.Util.allPaths;
 import static net.pincette.util.Util.getSegments;
 import static net.pincette.util.Util.isUri;
+import static net.pincette.util.Util.tryToDo;
 import static net.pincette.util.Util.tryToDoRethrow;
 import static net.pincette.util.Util.tryToGet;
 import static net.pincette.xml.Util.ancestors;
 import static net.pincette.xml.Util.documentOrder;
 import static net.pincette.xml.Util.secureDocumentBuilderFactory;
+import static net.pincette.xml.Util.secureTransformerFactory;
 import static net.pincette.xml.stream.Util.attributes;
 import static net.pincette.xml.stream.Util.newInputFactory;
 
@@ -55,6 +57,8 @@ import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
+import javax.xml.transform.dom.DOMResult;
+import javax.xml.transform.sax.SAXSource;
 import net.pincette.function.SideEffect;
 import net.pincette.util.ArgsBuilder;
 import net.pincette.xml.CatalogResolver;
@@ -63,6 +67,7 @@ import net.pincette.xml.stream.DOMEventReader;
 import net.pincette.xml.stream.DOMEventWriter;
 import net.pincette.xml.stream.XIncludeEventReader;
 import net.pincette.xml.stream.XMLReaderEventReader;
+import org.ccil.cowan.tagsoup.Parser;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -73,6 +78,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXNotRecognizedException;
 import org.xml.sax.SAXNotSupportedException;
 import org.xml.sax.XMLReader;
+import org.xml.sax.ext.DefaultHandler2;
 import org.xml.sax.helpers.XMLFilterImpl;
 
 /**
@@ -108,6 +114,7 @@ public class Merge {
   private static final String HELP = "help";
   private static final String HELP_OPT = "--help";
   private static final String HELP_OPT_SHORT = "-h";
+  private static final String HTML = "html";
   private static final String PRESENT = "present";
   private static final String TEMPLATE = "template";
   private static final String TEMPLATE_OPT = "--template";
@@ -310,12 +317,36 @@ public class Merge {
     return stream(reverse(new ArrayList<>(path)));
   }
 
+  private static Parser getTagsoupParser() {
+    // Avoid incorrect comments from tagsoup to be propagated to Saxon.
+
+    return new Parser() {
+      @Override
+      public void setProperty(String name, Object value)
+          throws SAXNotRecognizedException, SAXNotSupportedException {
+        // Avoid incorrect comments from tagsoup to be propagated to Saxon.
+        super.setProperty(
+            name,
+            name.equals("http://xml.org/sax/properties/lexical-handler")
+                ? new DefaultHandler2()
+                : value);
+      }
+    };
+  }
+
   private static Optional<DataNode> getValue(final DataNode data, final List<String> path) {
     return getDataNode(data, path, Merge::getDataNode).filter(node -> node.value != null);
   }
 
   private static Function<String, Optional<Node>> getValueParser(final Element element) {
-    return hasXmlText(element) ? Merge::parseXml : null;
+    final Supplier<Function<String, Optional<Node>>> tryHtml =
+        () -> hasHtmlText(element) ? Merge::parseHtml : null;
+
+    return hasXmlText(element) ? Merge::parseXml : tryHtml.get();
+  }
+
+  private static boolean hasHtmlText(final Element element) {
+    return hasTextType(element, HTML);
   }
 
   private static boolean hasXmlText(final Element element) {
@@ -524,9 +555,31 @@ public class Merge {
     out.flush();
   }
 
+  private static Optional<Node> parseHtml(final String s) {
+    final DOMResult dom = new DOMResult();
+
+    return Optional.of(
+            SideEffect.<Node>run(
+                    () ->
+                        tryToDo(
+                            () ->
+                                secureTransformerFactory()
+                                    .newTransformer()
+                                    .transform(
+                                        new SAXSource(
+                                            getTagsoupParser(),
+                                            new InputSource(new StringReader(s))),
+                                        dom)))
+                .andThenGet(dom::getNode))
+        .filter(Document.class::isInstance)
+        .map(Document.class::cast)
+        .map(Document::getDocumentElement);
+  }
+
   private static Optional<Node> parseXml(final String s) {
     return tryToGet(() -> factory.newDocumentBuilder().parse(new InputSource(new StringReader(s))))
-        .map(Document::getDocumentElement);
+        .map(Document::getDocumentElement)
+        .map(e -> e.cloneNode(true));
   }
 
   private static void replaceBinding(final Attr attr, final DataNode root, final DataNode level) {
