@@ -87,7 +87,7 @@ public class CSSToXSLFOFilter extends XMLFilterImpl {
                               () ->
                                   new StreamSource(
                                       base != null && isUri(base)
-                                          ? new URI(base).resolve(href).toString()
+                                          ? new URL(new URL(base), href).toString()
                                           : new URL(
                                                   CSSToXSLFOFilter.class.getResource(
                                                       "style/css.xsl"),
