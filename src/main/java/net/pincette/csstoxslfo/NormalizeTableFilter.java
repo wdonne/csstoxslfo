@@ -77,7 +77,7 @@ class NormalizeTableFilter extends XMLFilterImpl {
   }
 
   private static int groupContribution(final Extra group) {
-    return !group.groupContributions.isEmpty() ? group.groupContributions.get(0) : 0;
+    return !group.groupContributions.isEmpty() ? group.groupContributions.getFirst() : 0;
   }
 
   private static Optional<String> inheritXHTMLFromTableRow(
@@ -198,7 +198,7 @@ class NormalizeTableFilter extends XMLFilterImpl {
   @Override
   public void endElement(final String namespaceURI, final String localName, final String qName)
       throws SAXException {
-    final Pair<Element, Extra> element = elementStack.remove(elementStack.size() - 1);
+    final Pair<Element, Extra> element = elementStack.removeLast();
 
     if (isPendingTableSynthetic(element.first)) {
       // Flush pending synthetic element.
@@ -249,7 +249,7 @@ class NormalizeTableFilter extends XMLFilterImpl {
         .map(
             pair ->
                 !pair.first.isEmpty() && pair.second == 0
-                    ? pair.first.get(0)
+                    ? pair.first.getFirst()
                     : tryPosition.apply(pair.first, pair.second))
         .orElse(null);
   }
@@ -371,7 +371,7 @@ class NormalizeTableFilter extends XMLFilterImpl {
   }
 
   private Optional<Pair<Element, Extra>> peekPair() {
-    return Optional.of(elementStack).filter(s -> !s.isEmpty()).map(s -> s.get(s.size() - 1));
+    return Optional.of(elementStack).filter(s -> !s.isEmpty()).map(List::getLast);
   }
 
   @Override
@@ -406,7 +406,7 @@ class NormalizeTableFilter extends XMLFilterImpl {
   private void synthesizeCells(
       final Pair<Element, Extra> element, final Pair<Element, Extra> groupParent) {
     if (!groupParent.second.groupContributions.isEmpty()) {
-      groupParent.second.groupContributions.remove(0);
+      groupParent.second.groupContributions.removeFirst();
     }
 
     // No contributions left for next row.

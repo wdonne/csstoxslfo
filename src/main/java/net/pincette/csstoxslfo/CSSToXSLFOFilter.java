@@ -7,6 +7,7 @@ import static net.pincette.xml.sax.Util.newSAXTransformerFactory;
 import static net.pincette.xml.sax.Util.newTemplatesHandler;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URL;
 import java.util.Objects;
 import java.util.Set;
@@ -86,7 +87,7 @@ public class CSSToXSLFOFilter extends XMLFilterImpl {
                               () ->
                                   new StreamSource(
                                       base != null && isUri(base)
-                                          ? new URL(new URL(base), href).toString()
+                                          ? new URI(base).resolve(href).toString()
                                           : new URL(
                                                   CSSToXSLFOFilter.class.getResource(
                                                       "style/css.xsl"),

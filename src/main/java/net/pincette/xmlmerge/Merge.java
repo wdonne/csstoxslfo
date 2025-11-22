@@ -28,7 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringReader;
-import java.net.URL;
+import java.net.URI;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -134,7 +134,7 @@ public class Merge {
   private static void addDataNode(
       final DataNode root, final List<String> path, final DataNode node) {
     getDataNode(root, path.subList(0, path.size() - 1), Merge::getDataNodeWithCreate)
-        .ifPresent(parent -> addDataNode(parent, path.get(path.size() - 1), node));
+        .ifPresent(parent -> addDataNode(parent, path.getLast(), node));
   }
 
   private static void addDataNode(final DataNode parent, final String key, final DataNode child) {
@@ -245,7 +245,7 @@ public class Merge {
                 takeWhile(path.stream(), segment -> get.apply(data, segment), get, Objects::nonNull)
                     .toList())
             .filter(result -> result.size() == path.size())
-            .map(result -> result.get(result.size() - 1));
+            .map(List::getLast);
   }
 
   private static DataNode getDataNode(final DataNode parent, final String segment) {
@@ -255,7 +255,7 @@ public class Merge {
   private static DataNode getDataNodeCurrent(final DataNode parent, final String segment) {
     return Optional.ofNullable(parent.map)
         .map(map -> map.get(segment))
-        .map(child -> child.list != null ? child.list.get(child.list.size() - 1) : child)
+        .map(child -> child.list != null ? child.list.getLast() : child)
         .orElse(null);
   }
 
@@ -426,10 +426,11 @@ public class Merge {
                       factory.createXMLEventReader(
                           template,
                           isUri(template)
-                              ? new URL(template).openStream()
+                              ? new URI(template).toURL().openStream()
                               : new FileInputStream(template))),
                   factory.createXMLEventReader(
-                      data, isUri(data) ? new URL(data).openStream() : new FileInputStream(data)),
+                      data,
+                      isUri(data) ? new URI(data).toURL().openStream() : new FileInputStream(data)),
                   XMLOutputFactory.newFactory().createXMLEventWriter(out));
             });
   }

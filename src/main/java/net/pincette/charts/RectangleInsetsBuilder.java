@@ -8,10 +8,6 @@ class RectangleInsetsBuilder {
   private double right;
   private double top;
 
-  static RectangleInsetsBuilder builder() {
-    return new RectangleInsetsBuilder();
-  }
-
   static RectangleInsetsBuilder from(final RectangleInsets insets) {
     final RectangleInsetsBuilder builder = new RectangleInsetsBuilder();
 

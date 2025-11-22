@@ -57,7 +57,7 @@ class BookmarkFilter extends XMLFilterImpl {
 
   private List<Bookmark> getList(final List<Bookmark> list, final int level) {
     final Supplier<List<Bookmark>> tryLower =
-        () -> !list.isEmpty() ? getList(list.get(list.size() - 1).lower, level - 1) : null;
+        () -> !list.isEmpty() ? getList(list.getLast().lower, level - 1) : null;
 
     return level == 1 ? list : tryLower.get();
   }

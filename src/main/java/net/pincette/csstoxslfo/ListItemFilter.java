@@ -40,8 +40,8 @@ class ListItemFilter extends XMLFilterImpl {
   public void endElement(final String namespaceURI, final String localName, final String qName)
       throws SAXException {
     super.endElement(namespaceURI, localName, qName);
-    type.remove(type.size() - 1);
-    url.remove(url.size() - 1);
+    type.removeLast();
+    url.removeLast();
   }
 
   private Optional<String> getValue(final List<String> stack) {

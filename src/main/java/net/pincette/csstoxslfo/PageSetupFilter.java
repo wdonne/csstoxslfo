@@ -350,7 +350,7 @@ class PageSetupFilter extends XMLFilterImpl {
   @Override
   public void endElement(final String namespaceURI, final String localName, final String qName)
       throws SAXException {
-    final Element element = elements.remove(elements.size() - 1);
+    final Element element = elements.removeLast();
 
     if (element.inBodyRegion) {
       super.endElement(namespaceURI, localName, qName);
@@ -522,7 +522,7 @@ class PageSetupFilter extends XMLFilterImpl {
   }
 
   private Optional<Element> peek() {
-    return Optional.of(elements).filter(l -> !l.isEmpty()).map(l -> l.get(l.size() - 1));
+    return Optional.of(elements).filter(l -> !l.isEmpty()).map(List::getLast);
   }
 
   @Override

@@ -61,7 +61,7 @@ public record Length(double value, String unit) {
   }
 
   public boolean equals(final Object o) {
-    return o instanceof Length l && value == l.value && unit.equals(l.unit);
+    return o instanceof Length(double value1, String unit1) && value == value1 && unit.equals(unit1);
   }
 
   public Length toPixels(final int ppi) {

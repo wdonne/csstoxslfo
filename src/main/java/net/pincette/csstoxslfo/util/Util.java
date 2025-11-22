@@ -4,6 +4,7 @@ import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
 import static java.lang.System.getProperty;
 import static java.time.ZoneId.systemDefault;
+import static java.util.Locale.forLanguageTag;
 import static java.util.Optional.ofNullable;
 import static net.pincette.util.Util.isDouble;
 import static net.pincette.util.Util.isInteger;
@@ -212,14 +213,7 @@ public class Util {
   }
 
   public static Locale getLocale(final String languageTag) {
-    return Optional.of(languageTag.indexOf('-'))
-        .filter(i -> i != -1)
-        .map(
-            i ->
-                new Locale(
-                    languageTag.substring(0, i).toLowerCase(),
-                    languageTag.substring(i + 1).toUpperCase()))
-        .orElseGet(() -> new Locale(languageTag.toLowerCase()));
+    return forLanguageTag(languageTag);
   }
 
   public static double getPercentage(final String s) {

@@ -35,7 +35,8 @@ class Compiled {
   static final String ANY_ELEMENT = "*|*";
   static final String SIBLING = "SIBLING";
   private static final String EPSILON = "EPSILON";
-  private static final boolean trace = System.getProperty("net.pincette.csstoxslfo.trace") != null;
+  private static final boolean TRACE = System.getProperty("net.pincette.csstoxslfo.trace") != null;
+
   DFAState startState = null;
   private int dfaStateCounter = 0;
   private int nfaStateCounter = 0;
@@ -255,7 +256,7 @@ class Compiled {
   }
 
   void dumpDFA(final PrintWriter out) {
-    if (trace) {
+    if (TRACE) {
       out.println();
       out.println("DFA START");
       out.println();
@@ -267,7 +268,7 @@ class Compiled {
   }
 
   void dumpNFA(final PrintWriter out) {
-    if (trace) {
+    if (TRACE) {
       out.println();
       out.println("NFA START");
       out.println();
@@ -347,7 +348,7 @@ class Compiled {
   /** Contains all matching rules sorted from least to most specific. */
   class DFAState {
     final Map<Condition, DFAState> candidateConditions = new HashMap<>();
-    final DigitalTree<DFAState> events = new DigitalTree<>(trace);
+    final DigitalTree<DFAState> events = new DigitalTree<>(TRACE);
     final List<Rule> pseudoRules = new ArrayList<>();
     final List<Rule> rules = new ArrayList<>();
     int state;

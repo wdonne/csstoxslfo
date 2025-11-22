@@ -331,7 +331,7 @@ class Matcher implements ContentHandler {
               stepStates(p.states, element);
 
               if (!p.children.isEmpty()) {
-                stepStates(getSiblingStates(p.children.get(p.children.size() - 1).states), element);
+                stepStates(getSiblingStates(p.children.getLast().states), element);
               }
             });
 

@@ -43,7 +43,7 @@ class LinkFilter extends XMLFilterImpl {
       throws SAXException {
     super.endElement(namespaceURI, localName, qName);
 
-    final int linkType = elements.remove(elements.size() - 1).linkType;
+    final int linkType = elements.removeLast().linkType;
 
     if (linkType != NO_LINK) {
       from(linkType == INTERNAL_LINK ? "internal-link" : "external-link")
@@ -52,7 +52,7 @@ class LinkFilter extends XMLFilterImpl {
   }
 
   private void handleBaseUrl(final Attributes atts) {
-    elements.get(elements.size() - 1).baseUrl =
+    elements.getLast().baseUrl =
         ofNullable(atts.getValue("xml:base"))
             .flatMap(base -> tryToGetRethrow(() -> new URL(base)))
             .orElse(

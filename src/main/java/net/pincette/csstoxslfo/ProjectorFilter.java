@@ -2073,7 +2073,7 @@ class ProjectorFilter extends XMLFilterImpl {
           .reduce(
               list(new StringSetEntry()),
               (l, u) -> {
-                final StringSetEntry entry = l.get(l.size() - 1);
+                final StringSetEntry entry = l.getLast();
 
                 if (u.getLexicalUnitType() == SAC_IDENT && entry.name == null) {
                   entry.name = u.getStringValue();
