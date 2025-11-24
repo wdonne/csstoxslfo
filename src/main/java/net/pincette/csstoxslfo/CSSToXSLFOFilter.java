@@ -7,7 +7,6 @@ import static net.pincette.xml.sax.Util.newSAXTransformerFactory;
 import static net.pincette.xml.sax.Util.newTemplatesHandler;
 
 import java.io.IOException;
-import java.net.URI;
 import java.net.URL;
 import java.util.Objects;
 import java.util.Set;
